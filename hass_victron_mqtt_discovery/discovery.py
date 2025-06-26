@@ -27,6 +27,7 @@ class HassVictronMqttDiscovery:
         mqtt_prefix="",
         mqtt_username=None,
         mqtt_password=None,
+        hass_status_topic="homeassistant/status",
         registers=None,
         registers_path=None,
         sensor_documentation=None,
@@ -39,6 +40,7 @@ class HassVictronMqttDiscovery:
         self.mqtt_username = mqtt_username
         self.mqtt_password = mqtt_password
         self.mqtt_prefix = mqtt_prefix
+        self.hass_status_topic = hass_status_topic
 
         self.devices = {}
 
@@ -60,6 +62,7 @@ class HassVictronMqttDiscovery:
             try:
                 async with self.mqtt:
                     await client.subscribe(self.mqtt_prefix + '#')
+                    await client.subscribe(self.hass_status_topic)
                     async for message in client.messages:
                         await self.on_message(message)
             except aiomqtt.MqttError:
@@ -104,6 +107,20 @@ class HassVictronMqttDiscovery:
             await self.devices[serial].subscribe()
 
     async def on_message(self, msg):
+        if await self.on_hass_message(msg): return
+        if await self.on_victron_message(msg): return
+
+    async def on_hass_message(self, msg):
+        if msg.topic.matches(self.hass_status_topic) and msg.payload == "online":
+            await asyncio.gather(*[
+                device.resync()
+                for device in self.devices.values()
+            ])
+            return True
+
+        return False
+
+    async def on_victron_message(self, msg):
         try:
             topic = msg.topic.value
             payload = json.loads(msg.payload)
@@ -122,6 +139,9 @@ class HassVictronMqttDiscovery:
                 await self.devices[c.serial].on_mqtt_message(topic, payload)
         except json.decoder.JSONDecodeError:
             # Ignore this error, the topic is not a valid victron topic
-            pass
+            return False
         except Exception as e:
             traceback.print_exception(e)
+            return False
+
+        return True
