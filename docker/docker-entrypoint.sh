@@ -22,6 +22,7 @@ async def main():
         mqtt_username = os.environ.get('MQTT_USERNAME', None),
         mqtt_password = os.environ.get('MQTT_PASSWORD', None),
         mqtt_prefix = os.environ.get('MQTT_PREFIX', ''),
+        hass_status_topic = os.environ.get('HASS_STATUS_TOPIC', 'homeassistant/status'),
         registers_path = './assets/modbus-registers.xlsx',
         sensor_documentation_path = './assets/sensor-documentation.html',
     )
