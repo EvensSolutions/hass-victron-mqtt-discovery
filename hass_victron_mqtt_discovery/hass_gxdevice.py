@@ -2,6 +2,7 @@ import re
 import json
 import uuid
 import asyncio
+import aiomqtt
 from datetime import datetime
 
 from .utils import logger
@@ -24,6 +25,14 @@ class HomeAssistantGXDevice:
     def keepalive_address(self):
         return '%s/R/%s/keepalive' % (self.mqtt_prefix, self.serial)
 
+    async def safe_publish(self, address, *args, **kwargs):
+        try:
+            await self.mqtt.publish(address, *args, **kwargs)
+            return True
+        except aiomqtt.MqttError as err:
+            logger.warn('Failed to publish to %s due to error: %s' % (address, err))
+            return False
+
     async def resync(self, notify_complete=False):
         logger.info('Resyncing: %s' % self.keepalive_id)
 
@@ -34,7 +43,7 @@ class HomeAssistantGXDevice:
                 "full-publish-completed-echo": self.keepalive_id
             })
 
-        await self.mqtt.publish(self.keepalive_address, json.dumps(payload))
+        await self.safe_publish(self.keepalive_address, json.dumps(payload))
 
     async def keepalive(self):
         await self.resync(notify_complete=True)
@@ -53,7 +62,7 @@ class HomeAssistantGXDevice:
                 last_full_sync = datetime.now()
                 await self.resync()
             else:
-                await self.mqtt.publish(self.keepalive_address, keepalive)
+                await self.safe_publish(self.keepalive_address, keepalive)
 
     async def subscribe(self):
         asyncio.get_running_loop().create_task(self.keepalive())
@@ -83,7 +92,7 @@ class HomeAssistantGXDevice:
 
         entity = HomeAssistantGXDeviceEntity(self, register, topic, payload=payload)
 
-        await self.mqtt.publish(
+        await self.safe_publish(
             'homeassistant/%s/%s/%s/config' % (entity.device_type, entity.device_id, entity.topic_id),
             payload=json.dumps(entity.entity_description)
         )

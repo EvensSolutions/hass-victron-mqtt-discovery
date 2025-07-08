@@ -21,6 +21,12 @@ from .utils import logger
 RE_SERIAL = r'N/[^/]+/system/\d+/Serial$'
 RE_PUBLISH_COMPLETE = r'N/([^/]+)/full_publish_completed$'
 
+class MqttClientProxy:
+    def __init__(self, getter):
+        self._getter = getter
+    def __getattr__(self, name):
+        return getattr(self._getter(), name)
+
 class HassVictronMqttDiscovery:
 
     def __init__(self,
@@ -105,7 +111,13 @@ class HassVictronMqttDiscovery:
         if serial not in self.devices:
             prefix = re.sub(RE_SERIAL, '', topic)
             logger.info('Found device with serial "%s" at prefix "%s"' % (serial, prefix))
-            self.devices[serial] = HomeAssistantGXDevice(self.mqtt, prefix, serial, self.registers, self.sensor_documentation)
+            self.devices[serial] = HomeAssistantGXDevice(
+                MqttClientProxy(lambda: self.mqtt),
+                prefix,
+                serial,
+                self.registers,
+                self.sensor_documentation
+            )
             await self.devices[serial].subscribe()
 
     async def on_message(self, msg):
