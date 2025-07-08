@@ -8,6 +8,7 @@
 import traceback
 import aiomqtt
 import asyncio
+import random
 import json
 import re
 
@@ -113,7 +114,9 @@ class HassVictronMqttDiscovery:
 
     async def on_hass_message(self, msg):
         if msg.topic.matches(self.hass_status_topic) and msg.payload == "online":
-            logger.info('Home Assistant connected, triggering resync')
+            delay = 5 + (random.random() * 2)
+            logger.info('Home Assistant connected, triggering resync in %.2fs' % delay)
+            await asyncio.sleep(delay)
             await asyncio.gather(*[
                 device.resync()
                 for device in self.devices.values()
