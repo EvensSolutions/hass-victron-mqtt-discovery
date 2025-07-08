@@ -4,6 +4,7 @@ import uuid
 import asyncio
 from datetime import datetime
 
+from .utils import logger
 from .topic_components import TopicComponents
 from .hass_gxdevice_entity import HomeAssistantGXDeviceEntity
 
@@ -24,7 +25,7 @@ class HomeAssistantGXDevice:
         return '%s/R/%s/keepalive' % (self.mqtt_prefix, self.serial)
 
     async def resync(self, notify_complete=False):
-        print('Resyncing: %s' % self.keepalive_id)
+        logger.info('Resyncing: %s' % self.keepalive_id)
 
         payload = { "keepalive-options" : [] }
 
