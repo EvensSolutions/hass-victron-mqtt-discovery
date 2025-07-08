@@ -15,6 +15,7 @@ from .modbus_registers import ModbusRegisters
 from .hass_gxdevice import HomeAssistantGXDevice
 from .topic_components import TopicComponents
 from .sensor_documentation import SensorDocumentation
+from .utils import logger
 
 RE_SERIAL = r'N/[^/]+/system/\d+/Serial$'
 RE_PUBLISH_COMPLETE = r'N/([^/]+)/full_publish_completed$'
@@ -49,7 +50,7 @@ class HassVictronMqttDiscovery:
 
     async def loop(self):
         if self.mqtt is not None:
-            raise 'Discovery already started'
+            raise Exception('Discovery already started')
 
         self.mqtt = client = aiomqtt.Client(
             hostname=self.mqtt_host,
@@ -86,7 +87,7 @@ class HassVictronMqttDiscovery:
         if registers_path is not None:
             return ModbusRegisters(registers_path)
 
-        raise 'Must supply either registers or registers_path'
+        raise Exception('Must supply either registers or registers_path')
 
     def init_sensor_documentation(self, sensor_documentation, sensor_documentation_path):
         if sensor_documentation is not None:
@@ -95,14 +96,14 @@ class HassVictronMqttDiscovery:
         if sensor_documentation_path is not None:
             return SensorDocumentation(sensor_documentation_path)
 
-        raise 'Must supply either sensor_documentation or sensor_documentation_path'
+        raise Exception('Must supply either sensor_documentation or sensor_documentation_path')
 
     async def on_device_discovery(self, topic, payload):
         serial = payload['value']
 
         if serial not in self.devices:
             prefix = re.sub(RE_SERIAL, '', topic)
-            print('Found device with serial "%s" at prefix "%s"' % (serial, prefix))
+            logger.info('Found device with serial "%s" at prefix "%s"' % (serial, prefix))
             self.devices[serial] = HomeAssistantGXDevice(self.mqtt, prefix, serial, self.registers, self.sensor_documentation)
             await self.devices[serial].subscribe()
 
@@ -112,6 +113,7 @@ class HassVictronMqttDiscovery:
 
     async def on_hass_message(self, msg):
         if msg.topic.matches(self.hass_status_topic) and msg.payload == "online":
+            logger.info('Home Assistant connected, triggering resync')
             await asyncio.gather(*[
                 device.resync()
                 for device in self.devices.values()
