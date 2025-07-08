@@ -156,6 +156,12 @@ class HomeAssistantGXDeviceEntity:
             info['command_topic'] = re.sub(r'(^|/)N/', r'\1W/', self.topic)
             info['command_template'] = '{{ { "value": value } | tojson }}'
 
+        if self.is_enum:
+            # Swap keys and value to map text values to numeric equivalent
+            options = { v: k for k, v in enumerate(self.options) if v is not None }
+            template = json.dumps(options) + '[value]'
+            info['command_template'] = '{{ { "value": %s } | tojson }}' % template
+
         return info
 
     @cached_property
