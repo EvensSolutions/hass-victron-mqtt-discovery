@@ -111,7 +111,7 @@ class HomeAssistantGXDeviceEntity:
 
         value_type = self.register['type']
 
-        if re.match(r'int(32|16)', value_type):
+        if re.match(r'u?int(32|16)', value_type):
             return 'number'
 
         if re.match(r'string', value_type):
