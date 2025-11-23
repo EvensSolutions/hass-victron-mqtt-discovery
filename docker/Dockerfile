@@ -1,5 +1,11 @@
 FROM python:3-alpine
 
+RUN apk add --no-cache \
+      build-base \
+      libxml2-dev \
+      libxslt-dev \
+      zlib-dev
+
 RUN mkdir -p /app
 WORKDIR /app
 
