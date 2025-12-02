@@ -1,7 +1,4 @@
 aiomqtt==2.3.2
 asyncio==3.4.3
-cssselect==1.2.0
-et_xmlfile==2.0.0
-lxml==5.3.1
 openpyxl==3.1.5
 pyquery==2.0.1
