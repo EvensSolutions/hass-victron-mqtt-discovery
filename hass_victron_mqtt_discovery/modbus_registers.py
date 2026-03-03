@@ -14,7 +14,7 @@ from openpyxl.reader.excel import load_workbook
 from .cache import Cache
 
 def topic_from_row(row):
-    if row[6] == '':
+    if row[0] is None or row[6] == '':
         return None
 
     value_range = [ float(v.strip()) for v in (row[5] or '').split('to') if re.match(r'^[-+]?\d+(.\d+)?$', v.strip()) ]
