@@ -1,8 +1,7 @@
 ARG BUILD_VERSION
-ARG BUILD_FROM
 FROM ghcr.io/evenssolutions/hass-victron-mqtt-discovery:${BUILD_VERSION} AS source
 
-FROM ${BUILD_FROM}
+FROM ghcr.io/home-assistant/base:latest
 
 RUN mkdir -p /app
 WORKDIR /app
