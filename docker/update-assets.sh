@@ -7,7 +7,7 @@ mkdir -p /tmp/assets/
 cd /tmp/assets/
 
 get_asset() {
-    wget --quiet "$1" -O "$2"
+    wget -L --quiet "$1" -O "$2"
     [ -s "$2" ] && mv "$2" $APP/assets/$2
 }
 

@@ -35,7 +35,11 @@ class SensorDocumentation(Cache):
                 self.unit_device_class_map, self.unit_state_class_map = cache_item
                 return
 
-        state_table = pq(page('#available-device-classes').next_all('table')[0])
+        heading = page('#device-classes').parent()
+        state_table = next(
+            pq(table) for table in heading.next_all('table').items()
+            if len(pq(table)('tbody tr').eq(0)('td')) == 3
+        )
 
         for row in state_table('tbody tr').items():
             clazz, units, description = [ pq(c).text() for c in row('td') ]
