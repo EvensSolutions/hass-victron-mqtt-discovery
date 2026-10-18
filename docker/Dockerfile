@@ -10,7 +10,7 @@ ADD hass_victron_mqtt_discovery hass_victron_mqtt_discovery
 ADD docker/*.sh .
 
 ENV ASSET_MODBUS_REGISTERS_URL="https://www.victronenergy.com/upload/documents/CCGX-Modbus-TCP-register-list-3.50.xlsx"
-ENV ASSET_SENSOR_DOCUMENTATION_URL="https://developers.home-assistant.io/docs/core/entity/sensor/"
+ENV ASSET_SENSOR_DOCUMENTATION_URL="https://contributors.home-assistant.io/core/entities/sensor/"
 
 RUN ./update-assets.sh
 
