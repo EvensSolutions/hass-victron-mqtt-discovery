@@ -25,6 +25,7 @@ async def main():
         hass_status_topic = os.environ.get('HASS_STATUS_TOPIC', 'homeassistant/status'),
         registers_path = './assets/modbus-registers.xlsx',
         sensor_documentation_path = './assets/sensor-documentation.html',
+        sensor_const_path = './assets/sensor-const.py',
     )
 
     await hass_discovery.start()

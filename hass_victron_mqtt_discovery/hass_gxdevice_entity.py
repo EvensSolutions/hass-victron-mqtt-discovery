@@ -94,6 +94,11 @@ class HomeAssistantGXDeviceEntity:
         unit = self.unit
         sensor_state_class = self.sensor_documentation.state_class_from_unit(unit)
 
+        sensor_state_class = self.sensor_documentation.valid_state_class(
+            self.device_class,
+            sensor_state_class
+        )
+
         if sensor_state_class is not None:
             return sensor_state_class
 

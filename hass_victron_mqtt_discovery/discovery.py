@@ -39,7 +39,8 @@ class HassVictronMqttDiscovery:
         registers=None,
         registers_path=None,
         sensor_documentation=None,
-        sensor_documentation_path=None):
+        sensor_documentation_path=None,
+        sensor_const_path=None):
 
         self.task = None
         self.mqtt = None
@@ -53,7 +54,7 @@ class HassVictronMqttDiscovery:
         self.devices = {}
 
         self.registers = self.init_registers(registers, registers_path)
-        self.sensor_documentation = self.init_sensor_documentation(sensor_documentation, sensor_documentation_path)
+        self.sensor_documentation = self.init_sensor_documentation(sensor_documentation, sensor_documentation_path, sensor_const_path)
 
     async def loop(self):
         if self.mqtt is not None:
@@ -96,12 +97,12 @@ class HassVictronMqttDiscovery:
 
         raise Exception('Must supply either registers or registers_path')
 
-    def init_sensor_documentation(self, sensor_documentation, sensor_documentation_path):
+    def init_sensor_documentation(self, sensor_documentation, sensor_documentation_path, sensor_const_path=None):
         if sensor_documentation is not None:
             return sensor_documentation
 
         if sensor_documentation_path is not None:
-            return SensorDocumentation(sensor_documentation_path)
+            return SensorDocumentation(sensor_documentation_path, sensor_const_path)
 
         raise Exception('Must supply either sensor_documentation or sensor_documentation_path')
 
