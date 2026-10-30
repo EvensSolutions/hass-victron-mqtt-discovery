@@ -38,11 +38,20 @@ class SensorDocumentation(Cache):
         all_classes = re.findall(r'^    ([A-Z_]+) = ', re.search(r'class SensorStateClass.*?\n\n\n', source, re.S)[0], re.M)
         block = re.search(r'DEVICE_CLASS_STATE_CLASSES.*?\n}', source, re.S)[0]
 
+        # DEVICE_CLASS_STATE_CLASSES is keyed by SensorDeviceClass attribute name
+        # (e.g. "CO"), but the attribute's string value (e.g. "carbon_monoxide") is
+        # what's actually used as device_class elsewhere, so map name -> value here.
+        device_class_start = source.index('class SensorDeviceClass')
+        device_class_end = source.index('\nclass ', device_class_start)
+        device_class_values = dict(re.findall(
+            r'^    (\w+) = "(\w+)"', source[device_class_start:device_class_end], re.M))
+
         result = {}
 
         for device_class, classes in re.findall(r'SensorDeviceClass\.(\w+):\s*(set\([^)]*\)|{[^}]*})', block):
             names = all_classes if 'SensorStateClass)' in classes else re.findall(r'SensorStateClass\.(\w+)', classes)
-            result[device_class.lower()] = [ n.lower() for n in names ]
+            key = device_class_values.get(device_class, device_class.lower())
+            result[key.lower()] = [ n.lower() for n in names ]
 
         return result
 
@@ -79,12 +88,12 @@ class SensorDocumentation(Cache):
         heading = page('#device-classes').parent()
         state_table = next(
             pq(table) for table in heading.next_all('table').items()
-            if len(pq(table)('tbody tr').eq(0)('td')) == 3
+            if 'Units' in [ pq(th).text() for th in pq(table)('thead th').items() ]
         )
 
         for row in state_table('tbody tr').items():
-            clazz, units, description = [ pq(c).text() for c in row('td') ]
-            clazz = clazz.split('.')[-1].lower()
+            _clazz, value, units, description = [ pq(c).text() for c in row('td') ]
+            clazz = value.lower()
             units = [ u.strip() for u in units.split(',') ]
 
             for u in units:
