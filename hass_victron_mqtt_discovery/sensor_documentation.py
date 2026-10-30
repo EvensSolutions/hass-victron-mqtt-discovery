@@ -79,12 +79,12 @@ class SensorDocumentation(Cache):
         heading = page('#device-classes').parent()
         state_table = next(
             pq(table) for table in heading.next_all('table').items()
-            if len(pq(table)('tbody tr').eq(0)('td')) == 3
+            if 'Units' in [ pq(th).text() for th in pq(table)('thead th').items() ]
         )
 
         for row in state_table('tbody tr').items():
-            clazz, units, description = [ pq(c).text() for c in row('td') ]
-            clazz = clazz.split('.')[-1].lower()
+            _clazz, value, units, description = [ pq(c).text() for c in row('td') ]
+            clazz = value.lower()
             units = [ u.strip() for u in units.split(',') ]
 
             for u in units:
